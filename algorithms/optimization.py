@@ -15,8 +15,8 @@ def configuration_score(
     - Use problem.score_components(configuration); ya retorna cobertura,
       redundancia y exposición en ese orden.
     """
-    # TODO: Add your code here
-    raise NotImplementedError("Punto 1: implemente configuration_score")
+    coverage, redundancy, exposure = problem.score_components(configuration)
+    return coverage - redundancy - exposure
 
 
 def hill_climbing(
@@ -38,9 +38,99 @@ def hill_climbing(
     - Inicialice los historiales con la configuración inicial y agregue solo las
       mejoras aceptadas antes de retornar el OptimizationResult.
     """
-    # TODO: Add your code here
-    raise NotImplementedError("Punto 1: implemente hill_climbing")
+    
+    current = initial_configuration
+    current_score = configuration_score(problem, current)
 
+    history = [current]
+    score_history = [current_score]
+
+    evaluaciones = 1
+    i = 0
+    improved = True
+
+    while i < max_iterations and improved:
+        neighbors = problem.neighbors(current)
+
+        best_neighbor = neighbors[0]
+        best_score = configuration_score(problem, best_neighbor)
+        evaluaciones += 1
+
+        for neighbor in neighbors[1:]:
+            score = configuration_score(problem, neighbor)
+            evaluaciones += 1
+
+            if score > best_score:
+                best_neighbor = neighbor
+                best_score = score
+
+        i += 1
+
+        improved = best_score > current_score
+
+        if improved:
+            current = best_neighbor
+            current_score = best_score
+
+            history.append(current)
+            score_history.append(current_score)
+
+    return OptimizationResult(
+        best_configuration=current,
+        best_score=current_score,
+        evaluations=evaluaciones,
+        iterations=i,
+        history=history,
+        score_history=score_history,
+    )
+    
+    """
+    Codigo inicial:
+    
+    current = initial_configuration
+    current_score = configuration_score
+    
+    evaluaciones = 1
+    i = 0 
+    improved = True
+    
+    while i < max_iterations:
+        neighbors = problem(current)
+        best_neighbor = neighbors(0)
+        best_score = configuration_score(problem, best_neighbor)
+        evaluacions += 1
+        
+        
+        for neighbor in neighbors:
+            score = configuration_score(problem, neighbor)
+            evaluciones += 1
+            
+            if score > best_score:
+                best_neighbor = neighbor
+                best_score = score
+            
+        i += 1
+        
+        current = best_neighbor
+        current_score = best_score
+        
+    return OptimizationResult(best_configuration=current, best_score=current_score, evaluaciones=evaluaciones,iterations=i)
+    
+    
+    Cambios realizados con IA:
+
+    Se corrigió la llamada a configuration_score para que reciba el problema y la configuración actual.
+   
+    Se corrigió la obtención de los vecinos usando problem.neighbors(current), ya que neighbors es el resultado de una función.
+
+    Se agregó history y score_history para guardar la configuración inicial y las mejoras aceptadas.
+
+    Se agregó la condición improved al ciclo while para que la búsqueda termine cuando el mejor vecino no tenga un puntaje estrictamente mayor al actual.
+
+    Se agregó el retorno de history y score_history al OptimizationResult.
+
+    """
+    
 
 def cooling_schedule(initial_temperature: float, cooling_rate: float, iteration: int) -> float:
     """
