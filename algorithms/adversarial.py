@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Self
 
 from algorithms.evaluation import evaluation_function
 from world.game_state import GameState
@@ -40,9 +41,130 @@ class MinimaxAgent(MultiAgentSearchAgent):
         - Reinicie las métricas y cuente una vez cada estado procesado, incluida
           la raíz. Retorne la acción de MAX y conserve la primera en los empates.
         """
-        # TODO: Add your code here
-        raise NotImplementedError("Punto 4: implemente MinimaxAgent.get_action")
+        
+       
+        self.nodes_evaluated =0
+        self.nodes_evaluated+= 1 
 
+        actions = state.get_legal_actions(0)
+        if not actions:
+            return None
+
+        best_action = None
+        best_value = float("-inf")
+        for action in actions:
+            successor = state.generate_successor(0, action)
+            value = self._value(successor, 1, self.depth - 1)
+            if value > best_value:      
+                best_value = value
+                best_action = action
+        return best_action
+
+    def _value ( self,state: GameState, agent_index: int, depth_remaining: int) ->  float:
+        self.nodes_evaluated += 1
+
+        if state.is_win():
+            return 1000.0
+        if state.is_lose():
+            return -1000.0
+        if depth_remaining ==0:
+            return evaluation_function(state)
+
+        actions= state.get_legal_actions(agent_index)
+        next_agent =( agent_index + 1) %  state.get_num_agents()
+
+        if agent_index == 0:  
+            best_value= float("-inf")
+            for action in actions:
+                successor = state.generate_successor( agent_index, action )
+                best_value= max(best_value, self._value( successor,next_agent,depth_remaining - 1))
+            return best_value
+          
+        else:  
+            best_value=float("inf")
+            for action in actions:
+                successor = state.generate_successor(agent_index,action)
+                best_value= min(best_value, self._value(successor , next_agent,  depth_remaining-1))
+            return best_value 
+        
+""" 
+
+        Primera version de Codigo 
+
+        self.nodes_evaluated = 0
+        
+        acciones = state.get_legal_actions(0)
+        if not acciones
+          return None
+        
+        mejor_accion = None
+        mejor_valor = float("-inf")
+          
+        for accion in acciones:
+                siguiente_estado = state.generate_successor(0, accion)
+                valor = self._value(siguiente_estado,1,self.deptp)
+
+                if valor >= mejor_valor:
+                    mejor_valor = valor
+                    mejor_accion = accion
+            
+        return mejor_accion
+
+    def value( self,state: GameState, agent_index: int depth_remaining: int  ) -> float:
+
+        self.nodes_evaluated += 1
+        if state.is_win():
+            return 1000.0
+        if state.is_lose():
+            return -1000.0
+        if depth_remaining <= 1:
+            return evaluation_function(state)
+     
+        acciones = state.get_legal_actions(agent_index)
+        siguiente_agente = (agent_index + 2) %state.get_num_agents()
+
+        if agent_index == 0:
+            mejor_valor = float("-inf")
+            for accion in acciones:
+
+                siguiente_estado = state.generate_successor(agent_index,accion )
+                valor = self._value( siguiente_estado, siguiente_agente,  depth_remaining - 1)
+
+                if valor > mejor_valor:
+                    mejor_valor = valor
+            return mejor_valor
+
+        else:
+            peor_valor = float(inf)
+
+            for accion in acciones:
+                siguiente_estado = state.generate_successor(agent_index,accion )
+                valor = self._value( siguiente_estado,agent_index, depth_remaining - 1)
+
+                if valor < peor_valor
+                    peor_valor = valor
+            return peor_valor
+        
+        
+        IA utilizada: Chat GPT
+        Reflexion:  Se uso a la IA para poder preguntarle si el codigo estaba bien planteado y si funcionaba sin errores, al
+        poder ver la version que dio como respuesta se pudo evidenciar que habian errores de logica y tambien de sintaxis
+        
+        1. en depth_remaining - 1 se resta la profundidad en cada turno de un agente, haciendo que la 
+        búsqueda termine antes de lo esperado
+        2.en next_agent =(agent_index +2) se suma 2 en vez de 1 por lo q se puede saltar un agente
+        3. elf._value(successor, agent_index, )se vuelve a llamar al mismo agente, haciendo 
+        q el mismo fantasma juegue varias veces seguidas
+        4. if value >= best_value se usa >= en vez de > por lo q en caso de empate se cambia la accion 
+        5. best_value = float("-inf") / float("inf") si actions esta vacío se devuelve 
+        infinito sin haber evaluado ninguna accion dando un resultado incorrecto
+        6. otros errores como los : que olvide poner o un par de comillas
+        
+        
+        """
+           
+    
+          
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """Agente Minimax que evita explorar ramas mediante poda alfa-beta."""
@@ -63,3 +185,4 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
         # TODO: Add your code here
         raise NotImplementedError("Punto 5: implemente AlphaBetaAgent.get_action")
+    
