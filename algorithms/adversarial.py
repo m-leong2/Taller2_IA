@@ -43,15 +43,15 @@ class MinimaxAgent(MultiAgentSearchAgent):
         """
         
        
-        self.nodes_evaluated =0
-        self.nodes_evaluated+= 1 
+        self.nodes_evaluated = 1
 
         actions = state.get_legal_actions(0)
         if not actions:
             return None
 
-        best_action = None
+        best_action = actions[0]
         best_value = float("-inf")
+        
         for action in actions:
             successor = state.generate_successor(0, action)
             value = self._value(successor, 1, self.depth - 1)
@@ -63,14 +63,12 @@ class MinimaxAgent(MultiAgentSearchAgent):
     def _value ( self,state: GameState, agent_index: int, depth_remaining: int) ->  float:
         self.nodes_evaluated += 1
 
-        if state.is_win():
-            return 1000.0
-        if state.is_lose():
-            return -1000.0
-        if depth_remaining ==0:
+        if state.is_win() or state.is_lose() or depth_remaining == 0:
             return evaluation_function(state)
 
         actions= state.get_legal_actions(agent_index)
+        if not actions:
+            return evaluation_function(state)
         next_agent =( agent_index + 1) %  state.get_num_agents()
 
         if agent_index == 0:  
@@ -159,6 +157,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         5. best_value = float("-inf") / float("inf") si actions esta vacío se devuelve 
         infinito sin haber evaluado ninguna accion dando un resultado incorrecto
         6. otros errores como los : que olvide poner o un par de comillas
+        7. no copndiere la funcion evalucacion 
         
         
         """
