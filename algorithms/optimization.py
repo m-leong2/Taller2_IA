@@ -139,7 +139,7 @@ def cooling_schedule(initial_temperature: float, cooling_rate: float, iteration:
     Esta función se invoca desde simulated_annealing en cada iteración.
     """
     # TODO: Add your code here
-    raise NotImplementedError("Punto 2: implemente cooling_schedule")
+    return initial_temperature * ( cooling_rate **  iteration)
 
 
 def simulated_annealing(
@@ -169,8 +169,107 @@ def simulated_annealing(
     rng = rng or random.Random()
     minimum_temperature = 1e-9
 
-    # TODO: Add your code here
-    raise NotImplementedError("Punto 2: implemente simulated_annealing")
+    current = initial_configuration
+    current_score = configuration_score(problem, current)
+
+    best= current
+    best_score =current_score
+
+    evaluations =1 
+    history=[current]
+    score_history =  [current_score]
+
+    iteration = 0
+    while iteration < max_iterations:
+        temperature = cooling_schedule( initial_temperature , cooling_rate, iteration )
+        if temperature <= minimum_temperature:
+            break
+
+        candidate = rng.choice( problem.neighbors(current)  )
+        candidate_score= configuration_score( problem, candidate ) 
+        evaluations += 1
+
+        delta = candidate_score-current_score
+        accept =delta > 0 or rng.random() < math.exp( delta / temperature )
+
+        if accept:
+            current, current_score = candidate, candidate_score
+            if current_score > best_score:
+                best, best_score =current, current_score
+
+        history.append( current ) 
+        score_history.append( current_score)
+        iteration +=1
+
+    return OptimizationResult(best_configuration=best, best_score=best_score, evaluations=evaluations,   iterations=iteration,
+        history=history,  score_history=score_history,  metadata={},  )
+    
+    
+    """
+    
+    Version olriginal de Codigo
+    IA utilizada: Claude
+    
+    def simulated_annealing(
+    problem: SmartGridOptimizationProblem,
+    initial_configuration: Configuration,
+    initial_temperature: float = 20.0,
+    cooling_rate: float = 0.97,
+    max_iterations: int = 500,
+    rng: random.Random | None = None,
+) -> OptimizationResult:
+
+    rng = random.Random()
+    current = initial_configuration
+    current_score = configuration_score(current)
+    best = current
+    best_score = current_score
+    evaluations = 0
+    history = []
+    score_history = []
+    iteration = 0
+
+    while iteration < max_iterations:
+
+        temperature =initial_temperature *cooling_rate ** iteration
+        neighbors = problem.neighbors(current)
+        candidate = rng.choice(neighbors)
+        candidate_score = configuration_score(problem, current)
+        delta = current_score - candidate_score
+
+        if delta > 0:
+            current = candidate
+            current_score = candidate_score
+        else:
+            probability = math.exp(delta * temperature)
+
+        if current_score < best_score:
+            best = current
+            best_score =current_score
+
+        history.append(candidate)
+        score_history.append(candidate_score)
+
+        iteration +=1
+
+    return OptimizationResult(  best_configuration=current,  best_score=current_score,  evaluations=evaluations  iterations=iteration,  history=history,  score_history=score_history )
+    
+    
+    entre lops errores q ayudo a encontrar la ia se pueden identificar :
+    
+    Inicializacion de rng ya q se creaba un generador nuevo en lugar de utilizar el recibido
+    configuration_score: faltaba enviar el problema como argumento
+    Calculo de delta estaba invertido. debe ser candidato menos actual
+    Probabilidad de aceptacioon: e multiplicaba por la temperatura en lugar de dividir 
+    se guardaba el candidato aunque hubiera sido rechazado
+    No se contabilizaba correctamente la evaluacion de la configuración inicial
+    Temperatura minima: faltaba detener el algoritmo cuando la temperatura llegaba al limite dado
+    Sintaxis: faltaba una coma en el Optimizationresult  entro algunos otros mas 
+        
+    
+    
+    
+    """
 
 
 def one_point_crossover(

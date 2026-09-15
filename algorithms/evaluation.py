@@ -80,4 +80,52 @@ def evaluation_function(state: GameState) -> float:
 
     return float(valor)
     
+    """
     
+    Primera version del Codigo
+    
+    def evaluation_function(state: GameState) -> float:
+    if state.is_win() or state.is_lose():
+        return base_evaluation_function(state)
+
+    puntuacion = state.get_score()
+
+
+    puntuacion -=0.1 *state.turns
+    distancia_intruso =state.layout.distance(  state.defender_position,    state.intruder_position )
+
+    if distancia_intruso != math.inf:
+        if distancia_intruso ==1:
+            puntuacion -= 20
+        elif distancia_intruso== 2:
+            puntuacion -= 10
+        else:
+            puntuacion+=5
+
+    # Distancia a las terminales
+    if state.pending_terminals:
+        distancia_minima = math.inf
+
+        for terminal in state.pending_terminals:
+            distancia = state.layout.distance( state.defender_position, terminal)
+
+            if distancia !=math.inf and distancia>distancia_minima:
+                distancia_minima =distancia
+
+        if distancia_minima != math.inf:
+            puntuacion -= 5 * distancia_minima
+    movilidad= len(state.get_legal_actions(0))}
+    puntuacion -= 2* movilidad
+
+    return puntuacion
+    
+    
+    IA utilizada: Chat GPT
+    La ia ayudo a comoprender porque el algoritmo quedara estancado y no se moviera mas 
+    Penalizacion al intruso ya q usaba una penalizacion insuficiente cuando el intruso estaba cerca haciendo que el defensor tomara riesgos
+    El peso era muy bajo 5.0 por lo q avanzar hacia las terminales tenia poca importancia
+    e restaba la movilidad (-2.0 * movilidad) en lugar de sumarla, haciendo que tener mas opciones de movimiento empeorara la evaluacion
+    y utilizaba -500 para una distancia de 0, aunque ese caso ya estaba controlado por is_lose().
+    La combinacion de pesos no diferenciaba suficientemente algunas posiciones, lo que podía provocar que el agente repitiera movimientos
+        
+    """
