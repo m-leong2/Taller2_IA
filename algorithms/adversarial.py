@@ -183,5 +183,127 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
           y corte si valor <= alpha.
         """
         # TODO: Add your code here
-        raise NotImplementedError("Punto 5: implemente AlphaBetaAgent.get_action")
+        self.nodes_evaluated = 1
+        
+        actions = state.get_legal_actions(0)
+        if not actions:
+            return None
+        
+        best_action = actions[0]
+        best_value = float("-inf")
+        alpha = float("-inf")
+        beta = float("inf")
+        
+        for action in actions:
+            successor = state.generate_successor(0, action)
+            value = self._value(successor, 1, self.depth - 1, alpha, beta)
+            if value > best_value:
+                best_value = value
+                best_action = action
+            
+            alpha = max(alpha, best_value)
+            
+        return best_action
     
+    def _value(self, state: GameState, agent_index: int, depth_remaining: int, alpha: float, beta: float) -> float:
+        self.nodes_evaluated += 1
+        if agent_index == 0:
+            depth_remaining -= 1
+
+        if state.is_win() or state.is_lose() or depth_remaining == 0:
+            return evaluation_function(state)
+
+        actions = state.get_legal_actions(agent_index)
+        if not actions:
+            return evaluation_function(state)
+
+        next_agent = (agent_index + 1) % state.get_num_agents()
+
+        if agent_index == 0:
+            
+            v = float("-inf")
+            for action in actions:
+                successor = state.generate_successor(agent_index, action)
+                v = max(v, self._value(successor, next_agent, depth_remaining, alpha, beta))
+                if v >= beta:
+                    return v  # Poda Beta
+                alpha = max(alpha, v)
+            return v
+
+        else:
+            v = float("inf")
+            for action in actions:
+                successor = state.generate_successor(agent_index, action)
+                v = min(v, self._value(successor, next_agent, depth_remaining, alpha, beta))
+                if v <= alpha:
+                    return v
+                beta = min(beta, v)
+            return v
+
+
+"""
+Primera version de Codigo - AlphaBetaAgent
+
+self.nodes_evaluated = 0
+
+acciones = state.get_legal_actions(0)
+if not acciones:
+    return None
+
+mejor_accion = None
+mejor_valor = float("-inf")
+alfa = float("-inf")
+beta = float("inf")
+
+for accion in acciones:
+    siguiente_estado = state.generate_successor(0, accion)
+
+    valor = self._value(siguiente_estado, 1, self.depth - 1, alfa, beta)
+    if valor >= mejor_valor:
+        mejor_valor = valor
+        mejor_accion = accion
+
+return mejor_accion
+
+
+def _value(self, estado: GameState, id_agente: int, profundidad: int, alfa: float, beta: float) -> float:
+    self.nodes_evaluated += 1
+
+    if estado.is_win() or estado.is_lose() or profundidad == 0:
+        return evaluation_function(estado)
+
+    acciones = estado.get_legal_actions(id_agente)
+    siguiente_agente = (id_agente + 1) % estado.get_num_agents()
+
+    if id_agente == 0:
+        v = float("-inf")
+        for accion in acciones:
+            sucesor = estado.generate_successor(id_agente, accion)
+            v = max(v, self._value(sucesor, siguiente_agente, profundidad - 1, alfa, beta))
+
+            if v > beta:
+                return v
+            alfa = max(alfa, v)
+        return v
+
+    else:
+        v = float("inf")
+        for accion in acciones:
+            sucesor = estado.generate_successor(id_agente, accion)
+            v = min(v, self._value(sucesor, siguiente_agente, profundidad - 1, alfa, beta))
+
+            if v <= beta:
+                return v
+            beta = min(beta, v)
+        return v
+
+
+IA utilizada: Gemini
+Reflexion: Se utilizo la IA como apoyo para validar el flujo inicial de la poda Alfa-Beta.
+Al revisar la primera iteracion se detectaron los siguientes errores de logica y de control de estado:
+
+1. Se restaba la profundidad en cada turno de cualquier agente (profundidad - 1), finalizando la busqueda antes de completar los plies correspondientes.
+2. Criterio de desempate invalido: Al usar 'valor >= mejor_valor', el agente reescribia la mejor accion elegida ante un empate en lugar de conservar la primera accion legal.
+3. Inconsistencia en las condiciones de poda: En el nodo MIN se comparaba 'v <= beta' en lugar de comparar contra 'alfa', lo que provocaba cortes de ramas invalidos o prematuros.
+4. Omision de verificacion de acciones vacias: No se manejaba el caso en que un agente no tuviera acciones legales disponibles dentro de la recursion.
+"""
